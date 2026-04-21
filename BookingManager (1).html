@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>BookingManager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#f0eef8;color:#111;min-height:100vh;font-size:14px}
+button{cursor:pointer;background:#fff;border:1px solid rgba(0,0,0,0.15);border-radius:10px;padding:10px 18px;font-size:14px;color:#111;transition:all .15s}
+button:active{transform:scale(0.97)}
+button.primary{background:#534AB7;color:#fff;border-color:#534AB7}
+button.danger{background:#A32D2D;color:#fff;border-color:#A32D2D}
+button.success{background:#0F6E56;color:#fff;border-color:#0F6E56}
+button.sm{padding:6px 12px;font-size:12px;border-radius:8px}
+input,select,textarea{width:100%;padding:12px 14px;border:1.5px solid rgba(0,0,0,0.15);border-radius:10px;font-size:14px;background:#fff;color:#111;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#534AB7;box-shadow:0 0 0 3px rgba(83,74,183,0.12)}
+.card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:12px}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.badge-cash{background:#EAF3DE;color:#3B6D11}
+.badge-credit{background:#E6F1FB;color:#0C447C}
+.badge-pending{background:#FAEEDA;color:#633806}
+.badge-cancelled{background:#FCEBEB;color:#791F1F}
+.badge-locked{background:#F1EFE8;color:#444}
+.topbar{background:#534AB7;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(83,74,183,0.3)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid rgba(0,0,0,0.1);display:flex;z-index:50;box-shadow:0 -2px 10px rgba(0,0,0,0.07)}
+.bnav{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 10px;font-size:10px;color:#999;cursor:pointer;border:none;background:transparent;border-radius:0;gap:2px}
+.bnav.active{color:#534AB7}
+.bnav .ic{font-size:19px}
+.main{padding:14px;padding-bottom:86px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:#f8f7ff;border-radius:12px;padding:13px;border:1px solid rgba(83,74,183,0.08)}
+.stat-label{font-size:11px;color:#888;margin-bottom:3px;font-weight:500}
+.stat-val{font-size:19px;font-weight:700}
+h2{font-size:17px;font-weight:700;margin-bottom:12px}
+h3{font-size:14px;font-weight:600;margin-bottom:10px}
+.ocard{background:#fff;border-radius:13px;padding:13px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid #ccc}
+.ocard.cash{border-left-color:#0F6E56}
+.ocard.credit{border-left-color:#185FA5}
+.ocard.pending{border-left-color:#BA7517}
+.ocard.cancelled{border-left-color:#A32D2D}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;z-index:200}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 18px 40px;width:100%;max-height:88vh;overflow-y:auto}
+.mhandle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px}
+.form-row{margin-bottom:12px}
+.form-label{font-size:12px;color:#555;margin-bottom:5px;font-weight:600;display:block}
+.row{display:flex;align-items:center;gap:8px}
+.chip{display:inline-block;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;background:#f0eef8;color:#534AB7;margin-right:6px;margin-bottom:6px;cursor:pointer;border:1.5px solid transparent}
+.chip.active{background:#534AB7;color:#fff}
+.qty-ctrl{display:flex;align-items:center;gap:4px}
+.qbtn{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;padding:0;border:1.5px solid rgba(83,74,183,0.3);color:#534AB7;background:#f0eef8}
+.qnum{min-width:30px;text-align:center;font-weight:700;font-size:15px}
+.pitem{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f8f7ff}
+.pitem:last-child{border-bottom:none}
+.empty{text-align:center;padding:36px 20px;color:#bbb}
+.empty .ei{font-size:44px;margin-bottom:10px}
+.timer-warn{color:#A32D2D;font-size:11px;margin-top:5px}
+.fab{position:fixed;bottom:74px;right:16px;width:54px;height:54px;border-radius:50%;background:#534AB7;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(83,74,183,0.4);z-index:40;border:none;cursor:pointer}
+.action-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.sbar{position:relative;margin-bottom:11px}
+.sbar input{padding-left:36px;background:#f8f7ff;border-color:transparent}
+.sbar::before{content:"🔍";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;z-index:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+function save(){try{localStorage.setItem('bm',JSON.stringify({users:S.users,pending:S.pending,companies:S.companies,products:S.products,orders:S.orders}))}catch(e){}}
+function load(){try{const d=localStorage.getItem('bm');if(d){const p=JSON.parse(d);if(p.users)S.users=p.users;if(p.pending)S.pending=p.pending;if(p.companies)S.companies=p.companies;if(p.products)S.products=p.products;if(p.orders)S.orders=p.orders;}}catch(e){}}
+
+const S={
+  user:null,pg:'dashboard',
+  users:[
+    {id:'u0',un:'noman_M_khan',name:'Noman Khan',role:'ceo',pass:'noman11'},
+    {id:'u1',un:'operator_ali',name:'Operator Ali',role:'operator',pass:'ali123'},
+    {id:'u2',un:'booker_imran',name:'Booker Imran',role:'booker',pass:'imran123'},
+    {id:'u3',un:'booker_hassan',name:'Booker Hassan',role:'booker',pass:'hassan123'},
+  ],
+  pending:[],
+  companies:[{id:'c1',name:'Company A'},{id:'c2',name:'Company B'}],
+  products:[
+    {id:'p1',cid:'c1',name:'Product X',price:150},
+    {id:'p2',cid:'c1',name:'Product Y',price:200},
+    {id:'p3',cid:'c2',name:'Product Z',price:300},
+    {id:'p4',cid:'c2',name:'Product W',price:120},
+  ],
+  orders:[],
+  modal:null,
+  basket:[],
+  search:'',
+  fStatus:'all',fBooker:'all',
+  period:'today',
+};
+let uid=300;function ID(){return'i'+(++uid)}
+function today(){return new Date().toISOString().slice(0,10)}
+function Rs(n){return'Rs. '+Number(n||0).toLocaleString()}
+function canEdit(o){return Date.now()-o.at<3600000}
+function minLeft(o){return Math.max(0,Math.floor((3600000-(Date.now()-o.at))/60000))}
+function getProd(id){return S.products.find(p=>p.id===id)||{name:'?',price:0}}
+function getUser(id){return S.users.find(u=>u.id===id)||{name:'?'}}
+function oTotal(items){return items.reduce((s,i)=>{const p=getProd(i.pid);return s+p.price*i.qty},0)}
+
+load();
+
+function R(){
+  const app=document.getElementById('app');
+  if(!S.user){app.innerHTML=loginPage();return}
+  app.innerHTML=`
+    <div class="topbar">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff">📦 BookingManager</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.75);text-transform:capitalize">${S.user.role}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:700;color:#fff">${S.user.name}</div>
+      </div>
+    </div>
+    <div class="main" id="mc">${pageContent()}</div>
+    ${bottomNav()}
+    ${S.modal?modalHTML():''}
+  `;
+}
+
+function bottomNav(){
+  const r=S.user.role;
+  let items=[];
+  if(r==='ceo')items=[['dashboard','📊','Dashboard'],['orders','📋','Orders'],['bookers','👥','Bookers'],['inventory','📦','Stock'],['users','🔑','Users'],['logout-x','🚪','Logout']];
+  else if(r==='operator')items=[['dashboard','📊','Dashboard'],['orders','📋','Orders'],['bookers','👥','Bookers'],['logout-x','🚪','Logout']];
+  else items=[['my-orders','📋','Orders'],['new-order','➕','New'],['my-summary','📊','Summary'],['logout-x','🚪','Logout']];
+  return`<div class="bottom-nav">${items.map(([p,ic,lb])=>`<button class="bnav${S.pg===p?' active':''}" onclick="${p==='logout-x'?'logout()':'goto(\''+p+'\')'}"><span class="ic">${ic}</span>${lb}</button>`).join('')}</div>`;
+}
+
+function pageContent(){
+  if(S.pg==='dashboard')return dashPage();
+  if(S.pg==='orders')return ordersPage();
+  if(S.pg==='bookers')return bookersPage();
+  if(S.pg==='inventory')return invPage();
+  if(S.pg==='users')return usersPage();
+  if(S.pg==='my-orders')return myOrdersPage();
+  if(S.pg==='new-order')return newOrderPage();
+  if(S.pg==='my-summary')return mySummaryPage();
+  return'';
+}
+
+function loginPage(){return`
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;background:linear-gradient(160deg,#f0eef8,#e8f4ff)">
+  <div style="width:100%;max-width:370px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:50px;margin-bottom:8px">📦</div>
+      <div style="font-size:22px;font-weight:700;color:#534AB7">BookingManager</div>
+      <div style="font-size:13px;color:#999;margin-top:4px">Private — authorized users only</div>
+    </div>
+    <div class="card">
+      <div class="form-row"><label class="form-label">Username</label><input id="lu" placeholder="Your username" autocapitalize="none"/></div>
+      <div class="form-row"><label class="form-label">Password</label><input id="lp" type="password" placeholder="Your password"/></div>
+      <button class="primary" style="width:100%;padding:13px;font-size:15px;border-radius:12px" onclick="doLogin()">Sign In →</button>
+      <p id="le" style="color:#A32D2D;font-size:13px;margin-top:9px;text-align:center;display:none"></p>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;color:#888;font-weight:600;margin-bottom:10px">New booker? Request access:</div>
+      <div class="form-row"><label class="form-label">Your name</label><input id="rn" placeholder="Full name"/></div>
+      <div class="form-row"><label class="form-label">Choose username</label><input id="ru" placeholder="e.g. booker_ahmed" autocapitalize="none"/></div>
+      <button style="width:100%;padding:12px" onclick="reqAccess()">Request Access</button>
+      <p id="rm" style="font-size:13px;margin-top:8px;text-align:center;display:none"></p>
+    </div>
+    <div style="font-size:11px;color:#ccc;text-align:center;margin-top:12px">CEO: noman_M_khan / noman11</div>
+  </div>
+</div>`}
+
+function dashPage(){
+  const td=today();
+  const to=S.orders.filter(o=>o.date===td);
+  const tot=to.reduce((s,o)=>s+o.total,0);
+  const cash=to.filter(o=>o.payType==='cash').reduce((s,o)=>s+o.total,0);
+  const cred=to.filter(o=>o.payType==='credit').reduce((s,o)=>s+o.total,0);
+  const pend=to.filter(o=>o.status==='pending').length;
+  const bookers=S.users.filter(u=>u.role==='booker');
+  return`
+  <h2>📊 Dashboard</h2>
+  <div class="grid2">
+    <div class="stat"><div class="stat-label">Total Sales</div><div class="stat-val" style="color:#534AB7">${Rs(tot)}</div></div>
+    <div class="stat"><div class="stat-label">Pending</div><div class="stat-val" style="color:${pend>0?'#BA7517':'#111'}">${pend}</div></div>
+  </div>
+  <div class="grid2">
+    <div class="stat"><div class="stat-label">✓ Cash</div><div class="stat-val" style="color:#0F6E56">${Rs(cash)}</div></div>
+    <div class="stat"><div class="stat-label">📄 Credit</div><div class="stat-val" style="color:#185FA5">${Rs(cred)}</div></div>
+  </div>
+  <div class="card">
+    <h3>Booker Summary — Today</h3>
+    ${bookers.map(b=>{
+      const bo=to.filter(o=>o.bookerId===b.id);
+      const bt=bo.reduce((s,o)=>s+o.total,0);
+      const bc=bo.filter(o=>o.payType==='cash').reduce((s,o)=>s+o.total,0);
+      const br=bo.filter(o=>o.payType==='credit').reduce((s,o)=>s+o.total,0);
+      return`<div style="padding:10px 0;border-bottom:1px solid #f8f7ff">
+        <div style="display:flex;justify-content:space-between"><strong>${b.name}</strong><strong style="color:#534AB7">${Rs(bt)}</strong></div>
+        <div style="font-size:12px;color:#888;margin-top:3px">${bo.length} orders &nbsp;·&nbsp; Cash: ${Rs(bc)} &nbsp;·&nbsp; Credit: ${Rs(br)}</div>
+      </div>`;
+    }).join('')}
+    ${bookers.length===0?'<div class="empty" style="padding:16px"><p>No bookers yet</p></div>':''}
+  </div>`;
+}
+
+function ordersPage(){
+  let orders=[...S.orders].sort((a,b)=>b.at-a.at);
+  if(S.fBooker!=='all')orders=orders.filter(o=>o.bookerId===S.fBooker);
+  if(S.fStatus!=='all')orders=orders.filter(o=>o.status===S.fStatus);
+  const bookers=S.users.filter(u=>u.role==='booker');
+  return`
+  <h2>📋 All Orders</h2>
+  <div style="margin-bottom:10px">
+    ${['all','pending','cash','credit','cancelled'].map(s=>`<span class="chip${S.fStatus===s?' active':''}" onclick="S.fStatus='${s}';R()">${s==='all'?'All':s.charAt(0).toUpperCase()+s.slice(1)}</span>`).join('')}
+  </div>
+  <select onchange="S.fBooker=this.value;R()" style="margin-bottom:12px">
+    <option value="all">All Bookers</option>
+    ${bookers.map(b=>`<option value="${b.id}"${S.fBooker===b.id?' selected':''}>${b.name}</option>`).join('')}
+  </select>
+  ${orders.length===0?`<div class="empty"><div class="ei">📭</div><p>No orders found</p></div>`:''}
+  ${orders.map(o=>{
+    const b=getUser(o.bookerId);
+    const items=o.items.map(i=>`${getProd(i.pid).name} ×${i.qty}`).join(', ');
+    const cls=o.payType||o.status;
+    return`<div class="ocard ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><strong style="font-size:15px">${o.shopName}</strong><div style="font-size:12px;color:#888;margin-top:2px">${o.area} · ${b.name}</div></div>
+        <div style="text-align:right"><strong style="color:#534AB7">${Rs(o.total)}</strong><div style="margin-top:4px">${badge(o)}</div></div>
+      </div>
+      <div style="font-size:12px;color:#666;margin-top:8px;background:#f8f7ff;padding:7px 10px;border-radius:8px">${items}</div>
+      ${o.comment?`<div style="font-size:11px;color:#888;margin-top:5px;font-style:italic">Reason: ${o.comment}</div>`:''}
+      ${(S.user.role==='ceo'||S.user.role==='operator')&&o.status==='pending'?`
+      <div class="action-row">
+        <button class="sm success" onclick="markOrder('${o.id}','cash')">✓ Cash</button>
+        <button class="sm" style="color:#185FA5;border-color:#185FA5" onclick="markOrder('${o.id}','credit')">Credit</button>
+        <button class="sm danger" onclick="cancelPrompt('${o.id}')">✗ Cancel</button>
+      </div>`:''}
+    </div>`;
+  }).join('')}`;
+}
+
+function bookersPage(){
+  const td=today();
+  const bookers=S.users.filter(u=>u.role==='booker');
+  return`
+  <h2>👥 Bookers</h2>
+  ${bookers.map(b=>{
+    const bo=S.orders.filter(o=>o.bookerId===b.id&&o.date===td);
+    const tot=bo.reduce((s,o)=>s+o.total,0);
+    const cash=bo.filter(o=>o.payType==='cash').reduce((s,o)=>s+o.total,0);
+    const cred=bo.filter(o=>o.payType==='credit').reduce((s,o)=>s+o.total,0);
+    return`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><strong style="font-size:15px">${b.name}</strong><div style="font-size:11px;color:#999">@${b.un}</div></div>
+        <strong style="color:#534AB7;font-size:16px">${Rs(tot)}</strong>
+      </div>
+      <div class="grid3">
+        <div class="stat" style="padding:9px"><div class="stat-label">Orders</div><div style="font-weight:700">${bo.length}</div></div>
+        <div class="stat" style="padding:9px"><div class="stat-label">Cash</div><div style="font-weight:700;color:#0F6E56;font-size:13px">${Rs(cash)}</div></div>
+        <div class="stat" style="padding:9px"><div class="stat-label">Credit</div><div style="font-weight:700;color:#185FA5;font-size:13px">${Rs(cred)}</div></div>
+      </div>
+      ${bo.map(o=>{
+        const items=o.items.map(i=>`${getProd(i.pid).name} ×${i.qty}`).join(', ');
+        return`<div style="padding:9px 0;border-top:1px solid #f8f7ff;display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div style="flex:1"><strong>${o.shopName}</strong> <span style="font-size:11px;color:#888">${o.area}</span><div style="font-size:11px;color:#999;margin-top:2px">${items}</div></div>
+          <div style="text-align:right;flex-shrink:0">${Rs(o.total)}<br/>${badge(o)}</div>
+        </div>`;}).join('')}
+      ${bo.length===0?'<p style="color:#bbb;font-size:13px;text-align:center;padding:10px">No orders today</p>':''}
+    </div>`;
+  }).join('')}
+  ${bookers.length===0?`<div class="empty"><div class="ei">👤</div><p>No bookers added</p></div>`:''}`;
+}
+
+function invPage(){
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2 style="margin:0">📦 Inventory</h2>
+    <button class="sm primary" onclick="openModal('addProduct')">+ Product</button>
+  </div>
+  <button style="width:100%;margin-bottom:12px;padding:12px" onclick="openModal('addCompany')">+ Add Company</button>
+  ${S.companies.map(c=>{
+    const prods=S.products.filter(p=>p.cid===c.id);
+    return`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="font-size:15px">${c.name}</strong>
+        <button class="sm danger" onclick="rmCompany('${c.id}')">Remove</button>
+      </div>
+      ${prods.map(p=>`<div class="pitem">
+        <div><div style="font-weight:600">${p.name}</div><div style="font-size:12px;color:#888">${Rs(p.price)}</div></div>
+        <button class="sm danger" onclick="rmProduct('${p.id}')">Remove</button>
+      </div>`).join('')}
+      ${prods.length===0?'<p style="color:#bbb;font-size:13px;text-align:center;padding:10px">No products yet</p>':''}
+    </div>`;
+  }).join('')}
+  ${S.companies.length===0?`<div class="empty"><div class="ei">📦</div><p>Add a company first</p></div>`:''}`;
+}
+
+function usersPage(){
+  const pend=S.pending;
+  const active=S.users.filter(u=>u.role!=='ceo');
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2 style="margin:0">🔑 Users</h2>
+    <button class="sm primary" onclick="openModal('addUser')">+ Add</button>
+  </div>
+  ${pend.length>0?`<div class="card" style="border:2px solid #FAC775">
+    <h3 style="color:#633806">⏳ Pending (${pend.length})</h3>
+    ${pend.map(u=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid #f8f7ff">
+      <div><strong>${u.name}</strong><div style="font-size:12px;color:#888">@${u.un}</div></div>
+      <div style="display:flex;gap:6px"><button class="sm success" onclick="approveUser('${u.id}')">✓ Approve</button><button class="sm danger" onclick="denyUser('${u.id}')">✗ Deny</button></div>
+    </div>`).join('')}
+  </div>`:''}
+  <div class="card">
+    <h3>Active Users</h3>
+    ${active.map(u=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f8f7ff">
+      <div>
+        <strong>${u.name}</strong>
+        <div style="font-size:12px;color:#888">@${u.un} · <span style="text-transform:capitalize">${u.role}</span></div>
+        <div style="font-size:11px;color:#ccc;font-family:monospace">pass: ${u.pass}</div>
+      </div>
+      <button class="sm danger" onclick="rmUser('${u.id}')">Remove</button>
+    </div>`).join('')}
+    ${active.length===0?'<p style="color:#bbb;text-align:center;padding:14px">No users yet</p>':''}
+  </div>`;
+}
+
+function myOrdersPage(){
+  const me=S.user;
+  const orders=S.orders.filter(o=>o.bookerId===me.id).sort((a,b)=>b.at-a.at);
+  return`
+  <h2>📋 My Orders</h2>
+  ${orders.length===0?`<div class="empty"><div class="ei">📭</div><p>No orders yet</p><button class="primary" style="margin-top:12px;padding:12px 24px" onclick="goto('new-order')">Create First Order</button></div>`:''}
+  ${orders.map(o=>{
+    const locked=!canEdit(o);
+    const items=o.items.map(i=>`${getProd(i.pid).name} ×${i.qty}`).join(', ');
+    const ml=minLeft(o);
+    const cls=o.payType||o.status;
+    return`<div class="ocard ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><strong style="font-size:15px">${o.shopName}</strong><div style="font-size:12px;color:#888;margin-top:2px">${o.area}</div></div>
+        <div style="text-align:right"><strong style="color:#534AB7">${Rs(o.total)}</strong><div style="margin-top:4px">${badge(o)}</div></div>
+      </div>
+      <div style="font-size:12px;color:#666;margin-top:8px;background:#f8f7ff;padding:7px 10px;border-radius:8px">${items}</div>
+      ${!locked&&o.status==='pending'?`<div class="timer-warn">⏱ ${ml} minutes left to edit</div><div class="action-row"><button class="sm" onclick="openModal('editOrder','${o.id}')">✏️ Edit</button><button class="sm danger" onclick="delOrder('${o.id}')">🗑 Delete</button></div>`:`<div style="margin-top:7px"><span class="badge badge-locked">🔒 Locked</span></div>`}
+    </div>`;
+  }).join('')}
+  <button class="fab" onclick="goto('new-order')">+</button>`;
+}
+
+function newOrderPage(){
+  const q=S.search.toLowerCase();
+  const prods=S.products.filter(p=>{
+    if(!q)return true;
+    const co=S.companies.find(c=>c.id===p.cid);
+    return p.name.toLowerCase().includes(q)||(co&&co.name.toLowerCase().includes(q));
+  });
+  const items=S.basket;
+  const total=oTotal(items);
+  return`
+  <h2>➕ New Order</h2>
+  <div class="card">
+    <h3>Shop Details</h3>
+    <div class="form-row"><label class="form-label">Shop Name *</label><input id="sn" placeholder="Shopkeeper name" value="${window._sn||''}"/></div>
+    <div class="form-row"><label class="form-label">Area *</label><input id="sa" placeholder="Area / location" value="${window._sa||''}"/></div>
+    <div class="form-row"><label class="form-label">Phone (optional)</label><input id="sp" placeholder="0300-0000000" value="${window._sp||''}"/></div>
+  </div>
+  <div class="card">
+    <h3>Add Products</h3>
+    <div class="sbar"><input id="ps" placeholder="Search products..." value="${S.search}" oninput="S.search=this.value;si();document.getElementById('mc').innerHTML=newOrderPage()"/></div>
+    ${prods.map(p=>{
+      const co=S.companies.find(c=>c.id===p.cid);
+      const inB=S.basket.find(i=>i.pid===p.id);
+      return`<div class="pitem">
+        <div><div style="font-weight:600">${p.name}</div><div style="font-size:12px;color:#888">${co?co.name:''} · <strong style="color:#534AB7">${Rs(p.price)}</strong></div></div>
+        ${inB?`<div class="qty-ctrl"><button class="qbtn" onclick="chgQty('${p.id}',-1)">−</button><span class="qnum">${inB.qty}</span><button class="qbtn" onclick="chgQty('${p.id}',1)">+</button></div>`:`<button class="sm primary" onclick="addItem('${p.id}')">+ Add</button>`}
+      </div>`;
+    }).join('')}
+    ${prods.length===0?'<p style="color:#bbb;text-align:center;padding:14px">No products found</p>':''}
+  </div>
+  ${items.length>0?`<div class="card" style="margin-bottom:16px">
+    <h3>Order Summary</h3>
+    ${items.map(it=>{const p=getProd(it.pid);return`
+      <div class="pitem">
+        <div><div style="font-weight:600">${p.name}</div><div style="font-size:12px;color:#888">${Rs(p.price)} × ${it.qty} = <strong>${Rs(p.price*it.qty)}</strong></div></div>
+        <div class="qty-ctrl"><button class="qbtn" onclick="chgQty('${it.pid}',-1)">−</button><span class="qnum">${it.qty}</span><button class="qbtn" onclick="chgQty('${it.pid}',1)">+</button></div>
+      </div>`}).join('')}
+    <div style="background:#534AB7;color:#fff;border-radius:12px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <span>Total</span><strong style="font-size:18px">${Rs(total)}</strong>
+    </div>
+    <button class="primary" style="width:100%;padding:14px;font-size:15px;border-radius:12px;margin-top:10px" onclick="submitOrder()">✓ Submit Order</button>
+  </div>`:''}`}
+
+function mySummaryPage(){
+  const me=S.user;const td=today();
+  let orders=S.orders.filter(o=>o.bookerId===me.id);
+  if(S.period==='today')orders=orders.filter(o=>o.date===td);
+  else if(S.period==='week'){const w=new Date();w.setDate(w.getDate()-7);orders=orders.filter(o=>new Date(o.date)>=w);}
+  const tot=orders.reduce((s,o)=>s+o.total,0);
+  const cash=orders.filter(o=>o.payType==='cash').reduce((s,o)=>s+o.total,0);
+  const cred=orders.filter(o=>o.payType==='credit').reduce((s,o)=>s+o.total,0);
+  return`
+  <h2>📊 My Summary</h2>
+  <div style="margin-bottom:12px">${['today','week','all'].map(p=>`<span class="chip${S.period===p?' active':''}" onclick="S.period='${p}';R()">${p==='today'?'Today':p==='week'?'7 Days':'All Time'}</span>`).join('')}</div>
+  <div class="grid2"><div class="stat"><div class="stat-label">Total Sales</div><div class="stat-val" style="color:#534AB7">${Rs(tot)}</div></div><div class="stat"><div class="stat-label">Orders</div><div class="stat-val">${orders.length}</div></div></div>
+  <div class="grid2" style="margin-bottom:14px"><div class="stat"><div class="stat-label">✓ Cash</div><div class="stat-val" style="color:#0F6E56">${Rs(cash)}</div></div><div class="stat"><div class="stat-label">📄 Credit</div><div class="stat-val" style="color:#185FA5">${Rs(cred)}</div></div></div>
+  ${orders.map(o=>{
+    const items=o.items.map(i=>`${getProd(i.pid).name} ×${i.qty}`).join(', ');
+    const cls=o.payType||o.status;
+    return`<div class="ocard ${cls}">
+      <div style="display:flex;justify-content:space-between"><div><strong>${o.shopName}</strong><div style="font-size:12px;color:#888">${o.area} · ${o.date}</div></div><div style="text-align:right"><strong style="color:#534AB7">${Rs(o.total)}</strong><br/>${badge(o)}</div></div>
+      <div style="font-size:12px;color:#666;margin-top:7px">${items}</div>
+    </div>`;}).join('')}
+  ${orders.length===0?`<div class="empty"><div class="ei">📊</div><p>No orders in this period</p></div>`:''}`;
+}
+
+function badge(o){
+  if(o.status==='pending')return`<span class="badge badge-pending">⏳ Pending</span>`;
+  if(o.status==='cash')return`<span class="badge badge-cash">✓ Cash</span>`;
+  if(o.status==='credit')return`<span class="badge badge-credit">📄 Credit</span>`;
+  if(o.status==='cancelled')return`<span class="badge badge-cancelled">✗ Cancelled</span>`;
+  return'';
+}
+
+function modalHTML(){
+  const m=S.modal;let body='';
+  if(m.type==='addCompany')body=`<div class="mhandle"></div><h3 style="margin-bottom:16px">Add Company</h3><div class="form-row"><label class="form-label">Company Name *</label><input id="mc1" placeholder="e.g. Unilever"/></div><button class="primary" style="width:100%;padding:13px;border-radius:12px" onclick="saveCompany()">Save</button><button style="width:100%;padding:13px;border-radius:12px;margin-top:8px" onclick="closeModal()">Cancel</button>`;
+  if(m.type==='addProduct')body=`<div class="mhandle"></div><h3 style="margin-bottom:16px">Add Product</h3><div class="form-row"><label class="form-label">Company *</label><select id="mp1">${S.companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div><div class="form-row"><label class="form-label">Product Name *</label><input id="mp2" placeholder="e.g. Surf Excel 1kg"/></div><div class="form-row"><label class="form-label">Price (Rs.) *</label><input id="mp3" type="number" placeholder="0" min="0"/></div><button class="primary" style="width:100%;padding:13px;border-radius:12px" onclick="saveProduct()">Save</button><button style="width:100%;padding:13px;border-radius:12px;margin-top:8px" onclick="closeModal()">Cancel</button>`;
+  if(m.type==='addUser')body=`<div class="mhandle"></div><h3 style="margin-bottom:16px">Add User</h3><div class="form-row"><label class="form-label">Full Name *</label><input id="mu1" placeholder="Full name"/></div><div class="form-row"><label class="form-label">Username *</label><input id="mu2" placeholder="e.g. booker_ahmed" autocapitalize="none"/></div><div class="form-row"><label class="form-label">Password *</label><input id="mu3" placeholder="Strong password"/></div><div class="form-row"><label class="form-label">Role *</label><select id="mu4"><option value="booker">Booker</option><option value="operator">Operator</option></select></div><button class="primary" style="width:100%;padding:13px;border-radius:12px" onclick="saveUser()">Add User</button><button style="width:100%;padding:13px;border-radius:12px;margin-top:8px" onclick="closeModal()">Cancel</button>`;
+  if(m.type==='cancel')body=`<div class="mhandle"></div><h3 style="margin-bottom:8px">Cancel Order</h3><p style="color:#A32D2D;font-size:13px;margin-bottom:14px">⚠️ Reason is required to cancel.</p><div class="form-row"><label class="form-label">Reason *</label><textarea id="cc" rows="3" placeholder="Why is this order being cancelled?"></textarea></div><button class="danger" style="width:100%;padding:13px;border-radius:12px" onclick="confirmCancel('${m.oid}')">Confirm Cancel</button><button style="width:100%;padding:13px;border-radius:12px;margin-top:8px" onclick="closeModal()">Go Back</button>`;
+  if(m.type==='editOrder'){
+    const o=S.orders.find(x=>x.id===m.oid);
+    const ml=minLeft(o);
+    body=`<div class="mhandle"></div><h3 style="margin-bottom:4px">Edit — ${o.shopName}</h3><p style="color:#A32D2D;font-size:12px;margin-bottom:14px">⏱ ${ml} minutes left</p>${o.items.map((it,idx)=>{const p=getProd(it.pid);return`<div class="pitem"><div><div style="font-weight:600">${p.name}</div><div style="font-size:12px;color:#888">${Rs(p.price)}</div></div><div class="qty-ctrl"><button class="qbtn" onclick="eQty('${o.id}',${idx},-1)">−</button><span class="qnum">${it.qty}</span><button class="qbtn" onclick="eQty('${o.id}',${idx},1)">+</button></div></div>`}).join('')}<div style="font-size:16px;font-weight:700;margin:12px 0;color:#534AB7;text-align:right">Total: ${Rs(oTotal(o.items))}</div><button class="primary" style="width:100%;padding:13px;border-radius:12px" onclick="closeModal()">Done</button>`;
+  }
+  return`<div class="modal-bg" onclick="bgClose(event)"><div class="modal">${body}</div></div>`;
+}
+
+function si(){window._sn=document.getElementById('sn')?.value||'';window._sa=document.getElementById('sa')?.value||'';window._sp=document.getElementById('sp')?.value||'';}
+function doLogin(){
+  const un=document.getElementById('lu').value.trim();
+  const pw=document.getElementById('lp').value.trim();
+  const found=S.users.find(u=>u.un===un&&u.pass===pw);
+  const le=document.getElementById('le');
+  if(found){S.user=found;S.pg=found.role==='booker'?'my-orders':'dashboard';R();}
+  else{le.style.display='block';le.textContent='❌ Wrong username or password.';}
+}
+function logout(){S.user=null;S.pg='dashboard';R();}
+function goto(p){S.pg=p;if(p==='new-order'){S.basket=[];S.search='';window._sn='';window._sa='';window._sp='';}R();}
+function openModal(type,oid){S.modal={type,oid};R();}
+function closeModal(){S.modal=null;R();}
+function bgClose(e){if(e.target.classList.contains('modal-bg'))closeModal();}
+function reqAccess(){
+  const name=document.getElementById('rn').value.trim();
+  const un=document.getElementById('ru').value.trim().replace(/\s/g,'_');
+  const msg=document.getElementById('rm');
+  if(!name||!un){msg.style.display='block';msg.style.color='#A32D2D';msg.textContent='❌ Fill both fields.';return;}
+  if(S.users.find(u=>u.un===un)||S.pending.find(u=>u.un===un)){msg.style.display='block';msg.style.color='#A32D2D';msg.textContent='❌ Username taken.';return;}
+  S.pending.push({id:ID(),un,name,pass:'temp123',role:'booker'});save();
+  msg.style.display='block';msg.style.color='#0F6E56';msg.textContent='✓ Request sent! CEO will approve you.';}
+function approveUser(id){const u=S.pending.find(x=>x.id===id);S.users.push(u);S.pending=S.pending.filter(x=>x.id!==id);save();R();}
+function denyUser(id){S.pending=S.pending.filter(x=>x.id!==id);save();R();}
+function saveCompany(){const name=document.getElementById('mc1').value.trim();if(!name){alert('Enter company name');return;}S.companies.push({id:ID(),name});save();closeModal();}
+function saveProduct(){const cid=document.getElementById('mp1').value;const name=document.getElementById('mp2').value.trim();const price=parseFloat(document.getElementById('mp3').value)||0;if(!name||price<=0){alert('Enter name and price');return;}S.products.push({id:ID(),cid,name,price});save();closeModal();}
+function rmCompany(id){if(!confirm('Remove company and all its products?'))return;S.companies=S.companies.filter(c=>c.id!==id);S.products=S.products.filter(p=>p.cid!==id);save();R();}
+function rmProduct(id){if(!confirm('Remove product?'))return;S.products=S.products.filter(p=>p.id!==id);save();R();}
+function saveUser(){const name=document.getElementById('mu1').value.trim();const un=document.getElementById('mu2').value.trim().replace(/\s/g,'_');const pass=document.getElementById('mu3').value.trim();const role=document.getElementById('mu4').value;if(!name||!un||!pass){alert('Fill all fields');return;}if(S.users.find(u=>u.un===un)){alert('Username exists');return;}S.users.push({id:ID(),name,un,pass,role});save();closeModal();}
+function rmUser(id){if(!confirm('Remove user?'))return;S.users=S.users.filter(u=>u.id!==id);save();R();}
+function markOrder(id,type){const o=S.orders.find(x=>x.id===id);if(o){o.status=type;o.payType=type;}save();R();}
+function cancelPrompt(id){S.modal={type:'cancel',oid:id};R();}
+function confirmCancel(id){const comment=document.getElementById('cc').value.trim();if(!comment){alert('Enter a reason');return;}const o=S.orders.find(x=>x.id===id);if(o){o.status='cancelled';o.comment=comment;}save();closeModal();}
+function addItem(pid){const idx=S.basket.findIndex(i=>i.pid===pid);if(idx>=0)S.basket[idx].qty++;else S.basket.push({pid,qty:1});si();document.getElementById('mc').innerHTML=newOrderPage();}
+function chgQty(pid,d){const idx=S.basket.findIndex(i=>i.pid===pid);if(idx<0)return;S.basket[idx].qty+=d;if(S.basket[idx].qty<=0)S.basket.splice(idx,1);si();document.getElementById('mc').innerHTML=newOrderPage();}
+function submitOrder(){
+  const sn=document.getElementById('sn').value.trim();
+  const sa=document.getElementById('sa').value.trim();
+  const sp=document.getElementById('sp').value.trim();
+  if(!sn){alert('Enter shop name');return;}
+  if(!sa){alert('Enter area');return;}
+  if(S.basket.length===0){alert('Add at least one product');return;}
+  const total=oTotal(S.basket);
+  S.orders.push({id:ID(),bookerId:S.user.id,shopName:sn,area:sa,phone:sp,items:[...S.basket],total,status:'pending',payType:null,comment:'',at:Date.now(),date:today()});
+  S.basket=[];window._sn='';window._sa='';window._sp='';
+  save();S.pg='my-orders';R();alert('✓ Order submitted!');}
+function delOrder(id){const o=S.orders.find(x=>x.id===id);if(!canEdit(o)){alert('1-hour window expired.');return;}if(confirm('Delete this order?'))S.orders=S.orders.filter(x=>x.id!==id);save();R();}
+function eQty(oid,idx,d){const o=S.orders.find(x=>x.id===oid);if(!o||!canEdit(o)){alert('Edit window expired');return;}o.items[idx].qty+=d;if(o.items[idx].qty<=0)o.items.splice(idx,1);o.total=oTotal(o.items);save();R();}
+
+R();
+</script>
+</body>
+</html>
